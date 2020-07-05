@@ -1,0 +1,23 @@
+POST https://1fzqk3npw4.execute-api.us-east-1.amazonaws.com/nearby_store_stage/pe
+
+{
+    "south": -12.233602,
+    "west": -77.186818,
+    "north": -11.857807,
+    "east": -76.825380,
+    "zoom": 16,
+    "country_code": "pe"
+}
+
+
+###
+{
+    "south": -12.003392325421665,
+    "west": -77.09370711281127,
+    "north": -11.982277061323614,
+    "east": -77.06370928718871,
+    "zoom": 16,
+    "country_code": "pe"
+}
+
+##
