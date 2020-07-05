@@ -16,6 +16,6 @@ table! {
         promo1 -> Nullable<Varchar>,
         promo2 -> Nullable<Varchar>,
         promo3 -> Nullable<Varchar>,
-        data -> Varchar,
+        data -> Nullable<Varchar>,
     }
 }

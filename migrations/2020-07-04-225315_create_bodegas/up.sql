@@ -14,5 +14,5 @@ CREATE TABLE stores (
   promo1 VARCHAR(255),
   promo2 VARCHAR(255),
   promo3 VARCHAR(255),
-  data VARCHAR(255) NOT NULL
+  data VARCHAR(255)
 );

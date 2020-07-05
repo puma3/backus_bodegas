@@ -14,11 +14,12 @@ pub struct Store {
     pub country_code: Option<String>,
     pub icon: Option<String>,
     pub code: Option<String>,
+    #[serde(rename = "type")]
     pub type_: Option<String>,
     pub delivery: Option<i32>,
     pub store_url: Option<String>,
     pub promo1: Option<String>,
     pub promo2: Option<String>,
     pub promo3: Option<String>,
-    pub data: String,
+    pub data: Option<String>,
 }

@@ -33,7 +33,7 @@ fn request_stores(
     north: f64,
     east: f64,
 ) -> HashMap<i32, Store> {
-    let zoom = 16;
+    let zoom = 20;
     let country_code = "pe";
 
     let body = build_body(south, west, north, east, zoom, country_code);
@@ -42,7 +42,7 @@ fn request_stores(
         .body(body)
         .send()
         .unwrap();
-    response.json().unwrap()
+    response.json().expect("Some error:")
 }
 
 fn store_response(conn: &PgConnection, result: HashMap<i32, Store>) {
@@ -64,15 +64,15 @@ fn main() {
     // Diesel client
     let connection = establish_connection();
 
-    // let south = -12.003392325421665;
-    // let west = -77.09370711281127;
-    // let north = -11.982277061323614;
-    // let east = -77.06370928718871;
+    let south = -12.003392325421665;
+    let west = -77.09370711281127;
+    let north = -11.982277061323614;
+    let east = -77.06370928718871;
 
-    let south = -12.233602;
-    let west = -77.186818;
-    let north = -11.857807;
-    let east = -76.825380;
+    // let south = -12.233602;
+    // let west = -77.186818;
+    // let north = -11.857807;
+    // let east = -76.825380;
     let result = request_stores(&client, south, west, north, east);
     store_response(&connection, result);
 }
