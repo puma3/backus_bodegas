@@ -11,3 +11,4 @@ diesel = { version = "1.4.4", features = ["postgres"] }
 dotenv = "0.15.0"
 reqwest = { version = "0.10", features = ["blocking", "json"] }
 serde = { version = "1.0.114", features = ["derive"] }
+csv = "1.1"

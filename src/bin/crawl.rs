@@ -62,7 +62,7 @@ fn store_response(conn: &PgConnection, result: HashMap<i32, Store>) {
     print!("Inserted {} stores", successful_inserts);
 }
 
-fn iterate_through_area(north: f64, east: f64, south: f64, west: f64) {
+fn iterate_through_area(north: f64, east: f64, south: f64, west: f64, area: &str) {
     // Area Calc
     let side_diff = 0.01575;
     let mut coords_arr: Vec<(f64, f64, f64, f64)> = Vec::new();
@@ -100,7 +100,7 @@ fn iterate_through_area(north: f64, east: f64, south: f64, west: f64) {
     for (north, east, south, west) in coords_arr {
         n_request += 1;
         let result = request_stores(&client, north, east, south, west);
-        print!("[r: {}/{}|North-B]\t", n_request, areas_to_request);
+        print!("[{}/{} | {}]\t", n_request, areas_to_request, area);
         store_response(&connection, result);
         println!("\t({}, {}, {}, {})", north, east, south, west);
     }
@@ -166,11 +166,83 @@ fn main() {
     // let south = -3.000069;
     // let west = -76.685680;
 
-    // North B
-    let north = -7.190257;
-    let east = -76.685680;
-    let south = 0.030786;
-    let west = -69.720348;
+    // North B failed
+    // let north = -7.190257;
+    // let east = -76.685680;
+    // let south = 0.030786;
+    // let west = -69.720348;
 
-    iterate_through_area(north, east, south, west);
+    // North B1
+    // let north = -6.198007000000018;
+    // let east = -76.685680;
+    // let south = -3.1143965;
+    // let west = -73.203014;
+
+    // North B2
+    // let north = -3.1143965;
+    // let east = -73.203014;
+    // let south = 0.030786;
+    // let west = -69.720348;
+
+    // North B3
+    // let north = -6.198007000000018;
+    // let east = -76.685680;
+    // let south = -3.1143965;
+    // let west = -73.203014;
+
+    // North B4
+    // let north = -3.1143965;
+    // let east = -73.203014;
+    // let south = 0.030786;
+    // let west = -69.720348;
+
+    // Center 2A
+    // let north = -10.218329999999888;
+    // let east = -78.319916;
+    // let south = -9.751493;
+    // let west = -77.09223;
+
+    // Center 2B
+    let north = -10.218329999999888;
+    let east = -77.09223;
+    let south = -9.751493;
+    let west = -75.86454;
+
+    // // Center 2C
+    // let north = -10.218329999999888;
+    // let east = -75.86454;
+    // let south = -9.751493;
+    // let west = -74.636856;
+
+    // // Center 2D
+    // let north = -10.218329999999888;
+    // let east = -74.636856;
+    // let south = -9.751493;
+    // let west = -73.409164;
+
+    // // Center 2E
+    // let north = -10.218329999999888;
+    // let east = -73.409164;
+    // let south = -9.751493;
+    // let west = -72.18148;
+
+    // // Center 2F
+    // let north = -10.218329999999888;
+    // let east = -72.18148;
+    // let south = -9.751493;
+    // let west = -70.9538;
+
+    // // Center 2G
+    // let north = -10.218329999999888;
+    // let east = -70.9538;
+    // let south = -9.751493;
+    // let west = -69.726105;
+
+    // // Center 2H
+    // let north = -10.218329999999888;
+    // let east = -69.726105;
+    // let south = -9.751493;
+    // let west = -68.498418;
+
+    iterate_through_area(north, east, south, west, "C2B");
 }
