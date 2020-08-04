@@ -37,7 +37,10 @@ fn build_body(
     country_code= country_code)
 }
 
-fn request_stores(client: &reqwest::blocking::Client, area_coords: &Coords) -> HashMap<i32, Store> {
+fn request_stores(
+    client: &reqwest::blocking::Client,
+    area_coords: &Coords,
+) -> Option<HashMap<i32, Store>> {
     let Coords {
         north,
         east,
@@ -54,7 +57,15 @@ fn request_stores(client: &reqwest::blocking::Client, area_coords: &Coords) -> H
         country_code
     );
     let response: reqwest::blocking::Response = client.post(&endpoint).body(body).send().unwrap();
-    response.json().expect("Some error:")
+
+    // response.json().expect("Some error:")
+    return match response.json() {
+        Ok(hash) => Some(hash),
+        Err(error) => {
+            println!("[❗ {}] Coords {:?}", error, area_coords);
+            None
+        }
+    };
 }
 
 fn store_response(conn: &PgConnection, result: HashMap<i32, Store>) {
@@ -71,7 +82,9 @@ fn store_response(conn: &PgConnection, result: HashMap<i32, Store>) {
         }
     }
 
-    println!("[✔] Inserted {} stores", successful_inserts);
+    if successful_inserts > 0 {
+        println!("[✔] Inserted {} stores", successful_inserts);
+    }
 }
 
 fn divide_area(area_coords: &Coords) -> Vec<Coords> {
@@ -83,7 +96,7 @@ fn divide_area(area_coords: &Coords) -> Vec<Coords> {
     } = area_coords;
 
     // Area Calc
-    let side_diff = 0.01575;
+    let side_diff = 0.012;
     let mut coords_arr: Vec<Coords> = Vec::new();
 
     let mut south_pivot = *south;
@@ -118,9 +131,9 @@ fn divide_area(area_coords: &Coords) -> Vec<Coords> {
 
 fn process_areas_in_parallel(areas: Vec<Coords>) {
     let areas_len = areas.len();
-    let thread_load = areas_len / 8;
-    let step = if thread_load > 20000 {
-        20000
+    let thread_load = areas_len / 64;
+    let step = if thread_load > 1000 {
+        1000
     } else {
         thread_load
     };
@@ -144,25 +157,30 @@ fn process_areas_in_parallel(areas: Vec<Coords>) {
         let connection = establish_connection();
 
         // Requests and DB insertion
-        // let mut n_request = 0;
         for coords in *areas_slice {
-            // n_request += 1;
-            let result = request_stores(&client, coords);
-            // print!("[{}/{} | {}]\t", n_request, areas_to_request, area);
-            store_response(&connection, result);
-            // println!("\t({}, {}, {}, {})", north, east, south, west);
+            if let Some(stores) = request_stores(&client, coords) {
+                store_response(&connection, stores);
+            }
         }
     });
 }
 
 fn main() {
-    // Country coords
-    let country_areas: Vec<Coords> = vec![Coords {
-        north: 9.883415,
-        east: -77.162092,
-        south: 7.022994,
-        west: -81.910932,
-    }];
+    // Peru coords
+    let country_areas: Vec<Coords> = vec![
+        Coords {
+            north: -11.297756,
+            east: -68.758453,
+            south: -18.439670,
+            west: -77.668796,
+        },
+        Coords {
+            north: 0.005921,
+            east: -69.149799,
+            south: -11.297756,
+            west: -81.322651,
+        },
+    ];
 
     for (_i, area) in country_areas.iter().enumerate() {
         let areas = divide_area(&area);
