@@ -7,5 +7,11 @@
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5432/tiendas_pe</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="Tiendas PA" uuid="426945d6-23a8-49b1-a72c-e197845880e1">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://localhost:5432/tiendas_pa</jdbc-url>
+    </data-source>
   </component>
 </project>
