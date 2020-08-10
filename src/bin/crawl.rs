@@ -10,6 +10,9 @@ use self::diesel::prelude::*;
 use self::models::*;
 use schema::stores;
 
+type StoreHash = HashMap<i32, Store>;
+type EncodedStoreHash = HashMap<i32, EncodedStore>;
+
 #[derive(Debug)]
 struct Coords {
     north: f64,
@@ -18,7 +21,7 @@ struct Coords {
     west: f64,
 }
 
-const COUNTRY_CODE: &str = "PE";
+const COUNTRY_CODE: &str = "PA";
 
 fn build_body(
     south: f64,
@@ -29,18 +32,24 @@ fn build_body(
     country_code: &String,
 ) -> String {
     format!("{{\"south\":{south},\"west\":{west},\"north\":{north},\"east\":{east},\"zoom\":{zoom},\"country_code\":\"{country_code}\"}}",
-    south = south,
-    west = west,
-    north = north,
-    east = east,
-    zoom = zoom,
-    country_code= country_code)
+            south = south,
+            west = west,
+            north = north,
+            east = east,
+            zoom = zoom,
+            country_code = country_code)
+}
+
+fn decode_store(encoded_data: String) -> Store {
+    let bytes = base64::decode(encoded_data).unwrap();
+    let store_json = std::str::from_utf8(&bytes).unwrap();
+    serde_json::from_str(store_json).unwrap()
 }
 
 fn request_stores(
     client: &reqwest::blocking::Client,
     area_coords: &Coords,
-) -> Option<HashMap<i32, Store>> {
+) -> Option<StoreHash> {
     let Coords {
         north,
         east,
@@ -56,16 +65,34 @@ fn request_stores(
         "https://1fzqk3npw4.execute-api.us-east-1.amazonaws.com/nearby_store_stage/{}",
         country_code
     );
+
     let response: reqwest::blocking::Response = client.post(&endpoint).body(body).send().unwrap();
 
-    // response.json().expect("Some error:")
-    return match response.json() {
-        Ok(hash) => Some(hash),
-        Err(error) => {
-            println!("[❗ {}] Coords {:?}", error, area_coords);
-            None
+    if country_code == "PE" {
+        match response.json() {
+            Ok(hash) => Some(hash),
+            Err(error) => {
+                println!("[ ❗ {}] Coords {:?}", error, area_coords);
+                None
+            }
         }
-    };
+    } else {
+        let resp_hash_res: Result<EncodedStoreHash, reqwest::Error> = response.json();
+        match resp_hash_res {
+            Ok(stores_hash) => {
+                let mut hash: StoreHash = HashMap::new();
+                for (id, encoded_store) in stores_hash {
+                    if let Some(encoded_data) = encoded_store.data {
+                        let store = decode_store(encoded_data);
+                        hash.insert(id, store);
+                    }
+                }
+
+                Some(hash)
+            }
+            Err(_) => None,
+        }
+    }
 }
 
 fn store_response(conn: &PgConnection, result: HashMap<i32, Store>) {
@@ -131,8 +158,8 @@ fn divide_area(area_coords: &Coords) -> Vec<Coords> {
 
 fn process_areas_in_parallel(areas: Vec<Coords>) {
     let areas_len = areas.len();
-    let thread_load = areas_len / 64;
-    let step = if thread_load > 1000 {
+    let thread_load = areas_len / 32;
+    let step = if thread_load > 5000 {
         1000
     } else {
         thread_load
@@ -167,26 +194,41 @@ fn process_areas_in_parallel(areas: Vec<Coords>) {
 
 fn main() {
     // Peru coords
+    // let country_areas: Vec<Coords> = vec![
+    //     // Coords {
+    //     //     north: -11.297756,
+    //     //     east: -68.758453,
+    //     //     south: -18.439670,
+    //     //     west: -77.668796,
+    //     // },
+    //     Coords {
+    //         north: 0.005921,
+    //         east: -69.149799,
+    //         south: -11.297756,
+    //         west: -81.322651,
+    //     },
+    // ];
+
+    // Panama coords
     let country_areas: Vec<Coords> = vec![
         Coords {
-            north: -11.297756,
-            east: -68.758453,
-            south: -18.439670,
-            west: -77.668796,
+            north: 9.648155,
+            east: -77.158322,
+            south: 7.223919,
+            west: -79.638397,
         },
         Coords {
-            north: 0.005921,
-            east: -69.149799,
-            south: -11.297756,
-            west: -81.322651,
+            north: 9.620151,
+            east: -79.638397,
+            south: 7.200514,
+            west: -83.052257,
         },
     ];
 
-    for (_i, area) in country_areas.iter().enumerate() {
+    for (i, area) in country_areas.iter().enumerate() {
         let areas = divide_area(&area);
-        // , &format!("{}{}", COUNTRY_CODE, i)
         let areas_to_request = areas.len();
-        println!("Areas to request: {}", areas_to_request);
+        println!("Section {} - Areas to request: {}", i, areas_to_request);
 
         process_areas_in_parallel(areas);
     }

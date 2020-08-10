@@ -23,3 +23,8 @@ pub struct Store {
     pub promo3: Option<String>,
     pub data: Option<String>,
 }
+
+#[derive(Deserialize, Debug)]
+pub struct EncodedStore {
+    pub data: Option<String>,
+}
