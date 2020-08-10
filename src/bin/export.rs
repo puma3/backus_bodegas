@@ -56,7 +56,7 @@ fn main() {
     let pages_count = ((records_count as f32) / (page_size as f32)).ceil() as i64;
 
     for page in 0..pages_count {
-        let offset = (page * page_size);
+        let offset = page * page_size;
         let results = get_stores(page_size, offset);
         save_stores(&results, page + 1);
     }
